@@ -96,11 +96,8 @@ def bearing_flat(start, end):
 
 
 if __name__ == '__main__':
+    num = int(sys.argv[1])
 
-    num = int(sys.argv[0])
-    print(num)
-    # points = LandingPoints()
-    # points.add_simulations(20)
-    # points.print_stats()
-    
-    
+    points = LandingPoints()
+    points.add_simulations(num)
+    points.print_stats()
