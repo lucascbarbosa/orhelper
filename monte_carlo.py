@@ -4,6 +4,7 @@ import orhelper
 from random import gauss
 import math
 import sys
+import matplotlib.pyplot as plt
 
 
 class LandingPoints(list):
@@ -27,7 +28,7 @@ class LandingPoints(list):
 
             # Run num simulations and add to self
             for p in range(num):
-                print('Running simulation ', p)
+                print('Running simulation ', p+1)
 
                 opts.setLaunchRodAngle(math.radians(gauss(45, 5)))  # 45 +- 5 deg in direction
                 opts.setLaunchRodDirection(math.radians(gauss(0, 5)))  # 0 +- 5 deg in direction
@@ -41,6 +42,7 @@ class LandingPoints(list):
                 airstarter = AirStart(gauss(1000, 50))  # simulation listener to drop from 1000 m +- 50
                 lp = LandingPoint(self.ranges, self.bearings)
                 orh.run_simulation(sim, listeners=(airstarter, lp))
+                # print("Iteration result: ",self.ranges[-1])
                 self.append(lp)
 
     def print_stats(self):
@@ -49,6 +51,29 @@ class LandingPoints(list):
             (np.mean(self.ranges), np.std(self.ranges), np.degrees(np.mean(self.bearings)),
              np.degrees(np.std(self.bearings)), len(self)))
 
+    def get_stats(self):
+        r_mean,r_std = np.mean(self.ranges),np.std(self.ranges)
+        b_mean,b_std = np.mean(self.bearings),np.std(self.bearings)
+
+        return r_mean,r_std,b_mean,b_std
+
+    def plot_stats(self):
+
+        iterations = [i for i in range(len(self.ranges))]
+        mean_ranges = [np.mean(self.ranges[:i]) for i in range(1,len(self.ranges)+1)]
+        std_ranges = [np.std(self.ranges[:i]) for i in range(1,len(self.ranges)+1)]
+
+        upper_bound = [mean_ranges[i]+std_ranges[i] for i in range(len(mean_ranges))]
+        lower_bound = [mean_ranges[i]-std_ranges[i] for i in range(len(mean_ranges))]
+
+        fig = plt.figure()
+        plt.plot(iterations, mean_ranges)
+        plt.fill_between(iterations, lower_bound, upper_bound, facecolor = 'yellow', alpha=0.25)
+        fig.suptitle('Mean range by monte carlo')
+        plt.xlabel('Iterations',fontsize=10)
+        plt.ylabel('Landing range',fontsize=10)
+        fig.savefig('monte-carlo.jpg')
+        plt.show()
 
 class LandingPoint(orhelper.AbstractSimulationListener):
     def __init__(self, ranges, bearings):
@@ -101,3 +126,4 @@ if __name__ == '__main__':
     points = LandingPoints()
     points.add_simulations(num)
     points.print_stats()
+    points.plot_stats()
